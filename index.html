@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>春秋时期各国君主时间轴</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    #timeline {
+      overflow-x: auto;
+      white-space: nowrap;
+      max-width: 100%;
+      border: 1px solid #ccc;
+      padding-bottom: 20px;
+      position: relative;
+    }
+
+    .inner-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .period-overlay {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .period-overlay.western { background-color: #ede7f6; }
+    .period-overlay.spring { background-color: #f3efe0; }
+    .period-overlay.warring { background-color: #e0f0f3; }
+
+    #period-labels {
+      display: flex;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #fff;
+      height: 24px;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .period-label {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      border-right: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    #year-scale {
+      display: flex;
+      position: sticky;
+      top: 24px;
+      background: #fff;
+      border-bottom: 1px solid #ccc;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    .year-marker {
+      width: 12px;
+      text-align: center;
+      border-left: 1px solid #eee;
+      padding: 2px 0;
+      box-sizing: border-box;
+    }
+
+    .country {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 2px;
+      white-space: nowrap;
+    }
+
+    .country-label {
+      width: 60px;
+      display: inline-block;
+      margin-right: 10px;
+      text-align: center;
+      font-weight: bold;
+      flex-shrink: 0;
+      position: sticky;
+      left: 0;
+      background: #fff;
+      z-index: 15;
+      height: 24px;
+      box-sizing: border-box  ;
+      /* padding-right: 10px; */
+      border-top-right-radius: 2px;
+      border-bottom-right-radius: 2px;
+    }
+
+    .line {
+      display: inline-block;
+      position: relative;
+    }
+
+    .ruler {
+      height: 24px;
+      line-height: 24px;
+      display: inline-block;
+      position: absolute;
+      top: 0;
+      cursor: pointer;
+      box-sizing: border-box;
+      border-left: 1px solid #ccc;
+        box-shadow: 1px 0px 2px #ccc;
+        /* border-color: #eee; */
+    }
+
+    .ruler-text {
+      position: absolute;
+      top: 0px;
+      font-size: 12px;
+      /* white-space: nowrap; */
+    }
+
+    #tooltip {
+      position: absolute;
+      background: #fff;
+      border: 1px solid #aaa;
+      padding: 8px 12px;
+      font-size: 13px;
+      display: none;
+      white-space: normal;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+      max-width: 300px;
+      line-height: 1.5;
+    }
+
+    #tooltip ul {
+      margin: 4px 0 0 16px;
+      padding: 0;
+    }
+
+    #tooltip li {
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>春秋时期各国君主时间轴</h1>
+  <div id="timeline">
+    <div class="inner-wrapper">
+      <div class="period-overlay western"></div>
+      <div class="period-overlay spring"></div>
+      <div class="period-overlay warring"></div>
+
+      <div id="period-labels"></div>
+      <div id="year-scale"></div>
+      <div id="content"></div>
+    </div>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <script type="module">
+    import { data } from './data/index.js';
+
+    const pixelsPerYear = 12;
+    const yearScale = document.getElementById('year-scale');
+    const content = document.getElementById('content');
+    const tooltip = document.getElementById('tooltip');
+    const labelContainer = document.getElementById('period-labels');
+
+    let minYear = Infinity, maxYear = -Infinity;
+    data.forEach(country => {
+      country.rulers.forEach(r => {
+        if (r.start < minYear) minYear = r.start;
+        if (r.end > maxYear) maxYear = r.end;
+      });
+    });
+
+    const totalYears = maxYear - minYear + 1;
+
+    const offsetDiv = document.createElement('div');
+    offsetDiv.className = 'year-marker';
+    offsetDiv.style.width = '70px';
+    offsetDiv.textContent = '';
+    yearScale.appendChild(offsetDiv);
+    for (let y = minYear; y <= maxYear; y++) {
+      const yearDiv = document.createElement('div');
+      yearDiv.className = 'year-marker';
+      yearDiv.style.width = pixelsPerYear + 'px';
+      yearDiv.textContent = y % 10 === 0 ? y : '';
+      yearScale.appendChild(yearDiv);
+    }
+
+    function setOverlay(selector, start, end) {
+      const overlay = document.querySelector(selector);
+      const left = 70 + (start - minYear) * pixelsPerYear;
+      const width = (end - start + 1) * pixelsPerYear;
+      overlay.style.left = left + 'px';
+      overlay.style.width = width + 'px';
+    }
+
+    setOverlay('.period-overlay.western', -1046, -771);
+    setOverlay('.period-overlay.spring', -770, -476);
+    setOverlay('.period-overlay.warring', -475, -221);
+
+    function addPeriodLabel(text, start, end, bgColor) {
+      const div = document.createElement('div');
+      div.className = 'period-label';
+      const left = (start - minYear) * pixelsPerYear;
+      const width = (end - start + 1) * pixelsPerYear;
+    //   div.style.marginLeft = left + 70 + 'px';
+      div.style.marginLeft = (text === '西周' ? 70 : 0) + 'px';
+      div.style.width = width + 'px';
+      div.style.background = bgColor;
+      div.textContent = text;
+      labelContainer.appendChild(div);
+    }
+
+    addPeriodLabel('西周', -1046, -771, '#ede7f6');
+    addPeriodLabel('春秋', -770, -476, '#f3efe0');
+    addPeriodLabel('战国', -475, -221, '#e0f0f3');
+
+    data.forEach(country => {
+      const row = document.createElement('div');
+      row.className = 'country';
+
+      const label = document.createElement('span');
+      label.className = 'country-label';
+      label.textContent = country.country;
+      row.appendChild(label);
+
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.style.width = totalYears * pixelsPerYear + 'px';
+      line.style.height = '28px';
+      line.style.position = 'relative';
+
+      country.rulers.forEach((rulerData, idx) => {
+        const ruler = document.createElement('div');
+        ruler.className = 'ruler';
+
+        const years = rulerData.end - rulerData.start + 1;
+        const offsetYears = rulerData.start - minYear;
+        ruler.style.left = offsetYears * pixelsPerYear + 'px';
+        ruler.style.width = years * pixelsPerYear + 'px';
+
+        const shade = 0.3 + idx / (country.rulers.length * 1.5);
+        ruler.style.backgroundColor = shadeColor(country.baseColor, shade);
+
+        // 添加 ruler label
+        const label = document.createElement('div');
+        label.className = 'ruler-text';
+        label.textContent = rulerData.name;
+        ruler.appendChild(label);
+
+        // 添加事件标记 marker
+        if (rulerData.events && rulerData.events.length > 0) {
+          rulerData.events.forEach(ev => {
+            const [_, yearStr, monthStr = 1] = ev.date.split('-');
+            console.log(yearStr, monthStr);
+            const eventYear = parseInt(yearStr);
+            const eventMonth = parseInt(monthStr || '1');
+            console.log(rulerData.start)
+            const monthsFromStart = Math.abs((eventYear - Math.abs(rulerData.start))) * 12 + (eventMonth - 1);
+            const eventOffset = (monthsFromStart / 12) * pixelsPerYear;
+
+            const marker = document.createElement('div');
+            marker.style.position = 'absolute';
+            marker.style.left = `${eventOffset}px`;
+            marker.style.bottom = '0';
+            marker.style.width = '1px';
+            marker.style.height = '6px';
+            marker.style.background = 'red';
+            ruler.appendChild(marker);
+          });
+        }
+
+        // Tooltip
+        ruler.addEventListener('mouseover', (e) => {
+          const lines = [
+            `<strong>${rulerData.personalName}</strong> (${rulerData.start} ~ ${rulerData.end})`
+          ];
+          if (rulerData.events && rulerData.events.length > 0) {
+            lines.push('<ul>');
+            rulerData.events.forEach(ev => {
+              const [_, year, month] = ev.date.split('-');
+              lines.push(`<li>${parseInt(year)}年${parseInt(month || '1')}月：${ev.text}</li>`);
+            });
+            lines.push('</ul>');
+          }
+          tooltip.innerHTML = lines.join('');
+          tooltip.style.left = e.pageX + 10 + 'px';
+          tooltip.style.top = e.pageY + 10 + 'px';
+          tooltip.style.display = 'block';
+        });
+
+        ruler.addEventListener('mousemove', (e) => {
+          tooltip.style.left = e.pageX + 10 + 'px';
+          tooltip.style.top = e.pageY + 10 + 'px';
+        });
+
+        ruler.addEventListener('mouseout', () => {
+          tooltip.style.display = 'none';
+        });
+
+        line.appendChild(ruler);
+      });
+
+      row.appendChild(line);
+      content.appendChild(row);
+    });
+
+    // 拖动功能
+    const container = document.getElementById('timeline');
+    let isDragging = false, startX = 0, scrollLeft = 0;
+
+    container.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.pageX - container.offsetLeft;
+      scrollLeft = container.scrollLeft;
+    });
+
+    container.addEventListener('mouseup', () => isDragging = false);
+    container.addEventListener('mouseleave', () => isDragging = false);
+    container.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - container.offsetLeft;
+      const walk = x - startX;
+      container.scrollLeft = scrollLeft - walk;
+    });
+
+    function shadeColor(baseColor, percent) {
+      const num = parseInt(baseColor.slice(1), 16);
+      const r = (num >> 16) + Math.floor((255 - (num >> 16)) * percent);
+      const g = ((num >> 8) & 0xff) + Math.floor((255 - ((num >> 8) & 0xff)) * percent);
+      const b = (num & 0xff) + Math.floor((255 - (num & 0xff)) * percent);
+      return `rgb(${r},${g},${b})`;
+    }
+  </script>
+</body>
+</html>

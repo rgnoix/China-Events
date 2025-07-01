@@ -1,0 +1,20 @@
+import { zhou } from "./zhou.js";
+import { zheng } from "./zheng.js";
+import { wei } from "./wei.js";
+import { qi } from "./qi.js";
+import { song } from "./song.js";
+import { jin } from "./jin.js";
+import { qin } from "./qin.js";
+import { chu } from "./chu.js";
+import { lu } from "./lu.js";
+import { wu } from "./wu.js";
+import { yue } from "./yue.js";
+import { yan } from "./yan.js";
+import { chen } from "./chen.js";
+import { cai } from "./cai.js";
+import { cao } from "./cao.js";
+import { han } from "./han.js";
+import { zhao } from "./zhao.js";
+import { weiZ } from "./weiz.js";
+
+export const data = [zhou, zheng, wei, qi, song, jin, qin, chu, lu, wu, yue, yan, chen, cai, cao, han,zhao, weiZ];
